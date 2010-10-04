@@ -159,7 +159,7 @@
 (define meta (list (list 1 2 3) (list 8 9 4) (list 7 6 5)))
 
 ;Tablero Inicial Dificil
-(define tablero (list (list 1 2 3) (list 4 5 6) (list 7 8 9)))
+(define tablero (list (list 2 8 3) (list 1 6 4) (list 7 9 5)))
 
 ;achata una lista, de la forma 
 (define (flatten x:xs)
