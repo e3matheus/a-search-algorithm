@@ -1,16 +1,16 @@
-; Funciones que implementan los algoritmos de búsqueda con 
+; Funciones que implementan algunos algoritmos de búsqueda sin 
 ; información.
 ;
-; Autor: Santiago Enrique Conant Pablos, Junio 2006. Manuel Quintero y Elías Matheus
+; Autor: Santiago Enrique Conant Pablos, Junio 2006
 
-; Funcion de interface para la búsqueda avara
-(define busqueda-A* 
+; Funcion de interface para la búsqueda en anchura
+(define breadth-first 
   (lambda (edo-inicial)
-    (A* (list (list edo-inicial 0 (list (list 'Inicio edo-inicial)))))
+    (breadth (list (list edo-inicial 0 (list (list 'Inicio edo-inicial)))))
     ))
 
-; Función auxiliar que implementa la búsqueda avara.
-(define A* 
+; Función auxiliar que implementa la búsqueda en anchura.
+(define breadth 
   (lambda (candidatos)
     (if (null? candidatos) 
         #f
@@ -25,9 +25,9 @@
                 (display "Costo: ")
                 (display costo)
                 )
-              (A* (insertaXfev (elimina-ciclos (expande nodo))
-                               (cdr candidatos))))))
-    ))
+              (breadth (append (cdr candidatos) 
+                               (elimina-ciclos (expande nodo)))))))
+          ))
 
 ; Expande el estado contenido en un nodo.
 ; Requiere de la definición de la función sucesores, la cual regresa
@@ -57,7 +57,8 @@
            (map (lambda (nodo)
                   (let ((edo (car nodo))
                         (ruta (caddr nodo)))
-                    (if (ciclo? edo (cdr ruta)) ()
+                    (if (ciclo? edo (cdr ruta))
+                        ()
                         (list nodo))))
                 nodos))
     ))
@@ -71,31 +72,7 @@
       (else (ciclo? edo (cdr ruta))))
     ))
 
-; inserta los sucesores en la lista de candidatos x orden ascendente 
-; de la función de evaluación = costo acumulado + heuristica
-(define insertaXfev 
-  (lambda (sucs candidatos)
-    (if (null? sucs)
-        candidatos
-        (insertaXfev (cdr sucs) 
-                     (ixf-sort (car sucs) 
-                               (+ (cadar sucs)
-                                  (heuristica (car sucs))) 
-                               candidatos)))
-    ))
-
-(define ixf-sort 
-  (lambda (suc fev candidatos)
-    (cond ((null? candidatos) (list suc))
-          ((< fev (+ (cadar candidatos) 
-                     (heuristica (car candidatos))))
-           (cons suc candidatos))
-          (else (cons (car candidatos)
-                      (ixf-sort suc fev (cdr candidatos))))
-          )))
-
-
-; ------------------------------------------------- Funciones Personalizadas ------------------------
+;-------------------- Parte Personalizada ------------------------
 
 ; Gets the r,c of the puzzle
 (define (puz-ref puz r c)
@@ -161,46 +138,9 @@
 ;Tablero Inicial Dificil
 (define tablero (list (list 2 8 3) (list 1 6 4) (list 7 9 5)))
 
-;achata una lista, de la forma 
-(define (flatten x:xs)
-    (define (f x:xs result)
-          (cond
-                  [(null? x:xs) result]
-                        [(pair? (car x:xs)) (f (cdr x:xs) (f (car x:xs) result))]
-                              [else (f (cdr x:xs) (cons (car x:xs) result))]))
-      (reverse! (f x:xs '())))
-
-;Sumar el número de casillas disparejos
-(define heuristica
-  (lambda (nodo) 
-    (apply + (map (lambda (i j) (if (= i j) 0 1)) (flatten (car nodo)) (flatten meta)))
-    ))
-
-;Sumar el número de casillas fuera de su fila y el numero de casillas fuera de su columna
-(define (heuristicaClase nodo)
-  (+ (wrongRow (car nodo)) (wrongColumn (car nodo)))
-  )
-
-;Sumar el número de casillas fuera de su fila
-(define wrongRow
-  (lambda (nodo) 
-    ( apply + (map (lambda (i j) (apply + (map (lambda arg  (if (member (car arg) j) 0 1)) i))) nodo meta))
-    ))
-
-;Sumar el número de casillas fuera de su columna
-(define wrongColumn
-  (lambda (nodo) 
-    (apply + (map (lambda (i j) (apply + (map (lambda arg (if (member (car arg) j) 0 1)) i))) (transpose nodo) (transpose meta)))
-    ))
-
-;Trasponer la matriz
-(define (transpose m)
-    (apply map list m))
-
 ;Define el estado meta
 (define meta?
   (lambda (nodo) 
     (cond ((equal? (car nodo) meta) #t)
           (else #f))
     ))
-
